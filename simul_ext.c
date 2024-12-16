@@ -2,6 +2,7 @@
 #include<string.h>
 #include<ctype.h>
 #include "cabeceras.h"
+#include <stdlib.h>
 
 #define LONGITUD_COMANDO 100
 
@@ -21,10 +22,15 @@ void LeeSuperBloque(EXT_SIMPLE_SUPERBLOCK *psup);
 
 int main()
 {
-         char *comando[LONGITUD_COMANDO];
-         char *orden[LONGITUD_COMANDO];
-         char *argumento1[LONGITUD_COMANDO];
-         char *argumento2[LONGITUD_COMANDO];
+    char *comando = (char *)malloc(LONGITUD_COMANDO * sizeof(char));
+    char *orden = (char *)malloc(LONGITUD_COMANDO * sizeof(char));
+    char *argumento1 = (char *)malloc(LONGITUD_COMANDO * sizeof(char));
+    char *argumento2 = (char *)malloc(LONGITUD_COMANDO * sizeof(char));
+
+    if (!comando || !orden || !argumento1 || !argumento2) {
+        fprintf(stderr, "Error al asignar memoria\n");
+        return 1;
+    }
          int i,j;
          unsigned long int m;
      EXT_SIMPLE_SUPERBLOCK ext_superblock;
@@ -41,7 +47,7 @@ int main()
      fent = fopen("particion.bin","r+b");
      fread(&datosfich, SIZE_BLOQUE, MAX_BLOQUES_PARTICION, fent);
      memcpy(&ext_superblock,(EXT_SIMPLE_SUPERBLOCK *)&datosfich[0], SIZE_BLOQUE);
-     memcpy(&directorio,(EXT_ENTRADA_DIR *)&datosfich[3], SIZE_BLOQUE);
+     memcpy(&directorio, (EXT_ENTRADA_DIR *)&datosfich[3], sizeof(directorio));
      memcpy(&ext_bytemaps,(EXT_BLQ_INODOS *)&datosfich[1], SIZE_BLOQUE);
      memcpy(&ext_blq_inodos,(EXT_BLQ_INODOS *)&datosfich[2], SIZE_BLOQUE);
      memcpy(&memdatos,(EXT_DATOS *)&datosfich[4],MAX_BLOQUES_DATOS*SIZE_BLOQUE);
@@ -60,7 +66,7 @@ for (;;) {
         continue;
     }
     if (strcmp(orden, "info") == 0) {
-        //LeeSuperBloque(&ext_superblock);
+        LeeSuperBloque(&ext_superblock);
         printf("Funcion info\n");
         continue;
     }
@@ -116,7 +122,7 @@ int ComprobarComando(char *strcomando, char *orden, char *argumento1, char *argu
     }
 
     // printf("%s %s %s\n",orden,argumento1,argumento2);
-    if ((strcmp(orden,"dir")!=0) && (strcmp(orden,"rename")!=0) &&
+    if ((strcmp(orden,"dir")!=0) && (strcmp(orden,"info")!=0) && (strcmp(orden,"rename")!=0) &&
         (strcmp(orden,"copy")!=0) && (strcmp(orden,"remove")!=0) &&
         (strcmp(orden,"imprimir")!=0) && (strcmp(orden,"salir")!=0) &&
         (strcmp(orden,"bytemaps")!=0)) {
