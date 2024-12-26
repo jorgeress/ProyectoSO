@@ -11,7 +11,7 @@ int ComprobarComando(char *strcomando, char *orden, char *argumento1, char *argu
 void LeeSuperBloque(EXT_SIMPLE_SUPERBLOCK *psup);
 int BuscaFich(EXT_ENTRADA_DIR *directorio, EXT_BLQ_INODOS *inodos,char *nombre);
 void Directorio(EXT_ENTRADA_DIR *directorio, EXT_BLQ_INODOS *inodos);
-//int Renombrar(EXT_ENTRADA_DIR *directorio, EXT_BLQ_INODOS *inodos, char *nombreantiguo, char *nombrenuevo);
+int Renombrar(EXT_ENTRADA_DIR *directorio, EXT_BLQ_INODOS *inodos, char *nombreantiguo, char *nombrenuevo);
 //int Imprimir(EXT_ENTRADA_DIR *directorio, EXT_BLQ_INODOS *inodos, EXT_DATOS *memdatos, char *nombre);
 //int Borrar(EXT_ENTRADA_DIR *directorio, EXT_BLQ_INODOS *inodos,EXT_BYTE_MAPS *ext_bytemaps, EXT_SIMPLE_SUPERBLOCK *ext_superblock, char *nombre,  FILE *fich);
 //int Copiar(EXT_ENTRADA_DIR *directorio, EXT_BLQ_INODOS *inodos, EXT_BYTE_MAPS *ext_bytemaps, EXT_SIMPLE_SUPERBLOCK *ext_superblock,EXT_DATOS *memdatos, char *nombreorigen, char *nombredestino,  FILE *fich);
@@ -76,9 +76,9 @@ for (;;) {
         continue;
     }
     if (strcmp(orden, "rename") == 0) {
-        //if (Renombrar(directorio, &ext_blq_inodos, argumento1, argumento2) == 0) {
-        //    Grabarinodosydirectorio(directorio, &ext_blq_inodos, fent);
-        //}
+        if (Renombrar(directorio, &ext_blq_inodos, argumento1, argumento2) == 0) {
+         Grabarinodosydirectorio(directorio, &ext_blq_inodos, fent);
+        }
         printf("Funcion rename");
         continue;
     }
@@ -199,4 +199,18 @@ void Directorio(EXT_ENTRADA_DIR *directorio, EXT_BLQ_INODOS *inodos) {
         }
     }
 }
-    
+
+int Renombrar(EXT_ENTRADA_DIR *directorio, EXT_BLQ_INODOS *inodos, char *nombreantiguo, char *nombrenuevo) {
+    int indice_antiguo = BuscaFich(directorio, inodos, nombreantiguo);
+    if (indice_antiguo == -1) {
+        printf("\nERROR: Archivo con nombre '%s' no encontrado.\n", nombreantiguo);
+        return -1;
+    }
+    if (BuscaFich(directorio, inodos, nombrenuevo) != -1) {
+        printf("ERROR: Ya existe un archivo con el nombre '%s'.\n", nombrenuevo);
+        return -1;
+    }
+    strncpy(directorio[indice_antiguo].dir_nfich, nombrenuevo, LEN_NFICH);
+    printf("\nArchivo '%s' renombrado a '%s'.\n", nombreantiguo, nombrenuevo);
+    return 0;
+}
