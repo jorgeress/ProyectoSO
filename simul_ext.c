@@ -12,7 +12,7 @@ void LeeSuperBloque(EXT_SIMPLE_SUPERBLOCK *psup);
 int BuscaFich(EXT_ENTRADA_DIR *directorio, EXT_BLQ_INODOS *inodos,char *nombre);
 void Directorio(EXT_ENTRADA_DIR *directorio, EXT_BLQ_INODOS *inodos);
 int Renombrar(EXT_ENTRADA_DIR *directorio, EXT_BLQ_INODOS *inodos, char *nombreantiguo, char *nombrenuevo);
-//int Imprimir(EXT_ENTRADA_DIR *directorio, EXT_BLQ_INODOS *inodos, EXT_DATOS *memdatos, char *nombre);
+int Imprimir(EXT_ENTRADA_DIR *directorio, EXT_BLQ_INODOS *inodos, EXT_DATOS *memdatos, char *nombre);
 int Borrar(EXT_ENTRADA_DIR *directorio, EXT_BLQ_INODOS *inodos,EXT_BYTE_MAPS *ext_bytemaps, EXT_SIMPLE_SUPERBLOCK *ext_superblock, char *nombre,  FILE *fich);
 int Copiar(EXT_ENTRADA_DIR *directorio, EXT_BLQ_INODOS *inodos, EXT_BYTE_MAPS *ext_bytemaps, EXT_SIMPLE_SUPERBLOCK *ext_superblock,EXT_DATOS *memdatos, char *nombreorigen, char *nombredestino,  FILE *fich);
 void Grabarinodosydirectorio(EXT_ENTRADA_DIR *directorio, EXT_BLQ_INODOS *inodos, FILE *fich);
@@ -100,18 +100,17 @@ for (;;) {
         printf("Funcion copy");
         continue;
     }
-
-  //if (strcmp(orden, "imprimir") == 0) {
-	// if (Imprimir(directorio, &ext_blq_inodos, &ext_datos, argumento1) == 0) {
-	// printf("Funcion imprimir ejecutada correctamente\n");
-   //} else {
-	// printf("Error al imprimir el archivo: %s\n", nombre);
- //}
-	   // continue;
- //}
+if (strcmp(orden, "imprimir") == 0) {
+    if (Imprimir(directorio, &ext_blq_inodos, memdatos, argumento1) == 0) {
+        printf("Funcion imprimir ejecutada correctamente\n");
+    } else {
+        printf("Error al imprimir el archivo: %s\n", argumento1);
+    }
+    continue;
+}
 
     if (strcmp(orden, "salir") == 0) {
-        //GrabarDatos(memdatos, fent); // Grabar todos los datos antes de salir
+        GrabarDatos(memdatos, fent); // Grabar todos los datos antes de salir
         fclose(fent);
         return 0;
     }
@@ -131,7 +130,7 @@ int ComprobarComando(char *strcomando, char *orden, char *argumento1, char *argu
         orden[i] = tolower(orden[i]);
     }
 
-    // printf("%s %s %s\n",orden,argumento1,argumento2);
+     printf("%s %s %s\n",orden,argumento1,argumento2);
     if ((strcmp(orden,"dir")!=0) && (strcmp(orden,"info")!=0) && (strcmp(orden,"rename")!=0) &&
         (strcmp(orden,"copy")!=0) && (strcmp(orden,"remove")!=0) &&
         (strcmp(orden,"imprimir")!=0) && (strcmp(orden,"salir")!=0) &&
@@ -225,23 +224,23 @@ int Renombrar(EXT_ENTRADA_DIR *directorio, EXT_BLQ_INODOS *inodos, char *nombrea
     return 0;
 }
 
-//int Imprimir(EXT_ENTRADA_DIR *directorio, EXT_BLQ_INODOS *inodos, EXT_DATOS *memdatos, char *nombre) {
-  //  int indice = BuscaFich(directorio, inodos, nombre);
-    //if (indice == -1) {
-      //  printf("ERROR: Archivo '%s' no encontrado.\n", nombre);
-        //return -1;
-    //}
+int Imprimir(EXT_ENTRADA_DIR *directorio, EXT_BLQ_INODOS *inodos, EXT_DATOS *memdatos, char *nombre) {
+    int indice = BuscaFich(directorio, inodos, nombre);
+    if (indice == -1) {
+        printf("ERROR: Archivo '%s' no encontrado.\n", nombre);
+        return -1;
+    }
 
-    //int inodo_index = directorio[indice].dir_inodo;
-    //EXT_SIMPLE_INODE *inodo = &inodos->blq_inodos[inodo_index];
+    int inodo_index = directorio[indice].dir_inodo;
+    EXT_SIMPLE_INODE *inodo = &inodos->blq_inodos[inodo_index];
 
-    //for (int i = 0; i < MAX_NUMS_BLOQUE_INODO; i++) {
-      //  if (inodo->i_nbloque[i] == NULL_BLOQUE) break;
-       // printf("%.*s", SIZE_BLOQUE, (char *)&memdatos[inodo->i_nbloque[i]]);
-    //}
-   // printf("\n");
-    //return 0;
-//}
+    for (int i = 0; i < MAX_NUMS_BLOQUE_INODO; i++) {
+        if (inodo->i_nbloque[i] == NULL_BLOQUE) break;
+        printf("%.*s", SIZE_BLOQUE, (char *)&memdatos[inodo->i_nbloque[i]]);
+    }
+    printf("\n");
+    return 0;
+}
 
 int Borrar(EXT_ENTRADA_DIR *directorio, EXT_BLQ_INODOS *inodos, EXT_BYTE_MAPS *ext_bytemaps, EXT_SIMPLE_SUPERBLOCK *ext_superblock, char *nombre, FILE *fich) {
     int indice = BuscaFich(directorio, inodos, nombre);
