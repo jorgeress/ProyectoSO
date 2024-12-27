@@ -27,6 +27,7 @@ int main()
     char *argumento1 = (char *)malloc(LONGITUD_COMANDO * sizeof(char));
     char *argumento2 = (char *)malloc(LONGITUD_COMANDO * sizeof(char));
 
+
     if (!comando || !orden || !argumento1 || !argumento2) {
         fprintf(stderr, "Error al asignar memoria\n");
         return 1;
