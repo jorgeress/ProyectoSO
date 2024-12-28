@@ -63,24 +63,24 @@ for (;;) {
 
     if (strcmp(orden, "dir") == 0) {
         Directorio(directorio, &ext_blq_inodos);
-        printf("Funcion directorio\n");
+        printf("\n");
         continue;
     }
     if (strcmp(orden, "info") == 0) {
         LeeSuperBloque(&ext_superblock);
-        printf("Funcion info\n");
+        printf("\n");
         continue;
     }
     if (strcmp(orden, "bytemaps") == 0) {
         Printbytemaps(&ext_bytemaps);
-        printf("Funcion bytemaps");
+        printf("\n");
         continue;
     }
     if (strcmp(orden, "rename") == 0) {
         if (Renombrar(directorio, &ext_blq_inodos, argumento1, argumento2) == 0) {
          Grabarinodosydirectorio(directorio, &ext_blq_inodos, fent);
         }
-        printf("Funcion rename");
+        printf("\n");
         continue;
     }
     if (strcmp(orden, "remove") == 0) {
@@ -89,7 +89,7 @@ for (;;) {
             GrabarByteMaps(&ext_bytemaps, fent);
             GrabarSuperBloque(&ext_superblock, fent);
         }
-        printf("Funcion remove");
+        printf("\n");
         continue;
     }
     if (strcmp(orden, "copy") == 0) {
@@ -98,7 +98,7 @@ for (;;) {
             GrabarByteMaps(&ext_bytemaps, fent);
             GrabarSuperBloque(&ext_superblock, fent);
         }
-        printf("Funcion copy");
+        printf("\n");
         continue;
     }
 
@@ -139,7 +139,6 @@ int ComprobarComando(char *strcomando, char *orden, char *argumento1, char *argu
         orden[i] = tolower(orden[i]);
     }
 
-     printf("%s %s %s\n",orden,argumento1,argumento2);
     if ((strcmp(orden,"dir")!=0) && (strcmp(orden,"info")!=0) && (strcmp(orden,"rename")!=0) &&
         (strcmp(orden,"copy")!=0) && (strcmp(orden,"remove")!=0) &&
         (strcmp(orden,"imprimir")!=0) && (strcmp(orden,"salir")!=0) &&
@@ -190,13 +189,15 @@ int BuscaFich(EXT_ENTRADA_DIR *directorio, EXT_BLQ_INODOS *inodos, char *nombre)
     return -1;  // Retornar -1 si no se encontró
 }
 void Printbytemaps(EXT_BYTE_MAPS *ext_bytemaps) {
-    printf("Mapa de bits de bloques:\n");
-    for (int i = 0; i < MAX_BLOQUES_PARTICION; i++) {
+    // Mostrar los 25 primeros elementos del mapa de bits de bloques
+    printf("Mapa de bits de bloques (primeros 25 elementos):\n");
+    for (int i = 0; i < 25; i++) {
         printf("%d", ext_bytemaps->bmap_bloques[i]);
-        if ((i + 1) % 8 == 0) printf(" "); // Espaciado cada 8 bits
+        if ((i + 1) % 8 == 0 && i != 24) printf(" "); // Espaciado cada 8 bits, excepto al final
     }
     printf("\n");
 
+    // Mostrar el mapa de bits de inodos completo
     printf("Mapa de bits de inodos:\n");
     for (int i = 0; i < MAX_INODOS; i++) {
         printf("%d", ext_bytemaps->bmap_inodos[i]);
@@ -206,14 +207,30 @@ void Printbytemaps(EXT_BYTE_MAPS *ext_bytemaps) {
 }
 void Directorio(EXT_ENTRADA_DIR *directorio, EXT_BLQ_INODOS *inodos) {
     printf("Directorio de archivos:\n");
-    printf("Nombre de archivo       Tamaño (bytes)\n");
-    printf("----------------------  --------------\n");
+    printf("Nombre de archivo       Tamaño (bytes)    Inodo    Bloques ocupados\n");
+    printf("----------------------  --------------    -----    ----------------\n");
 
     for (int i = 0; i < MAX_FICHEROS; i++) {
-        if (directorio[i].dir_inodo != NULL_INODO) { // Verificar si la entrada es válida
+        // Verificar si la entrada es válida y el inodo no es 2 (excluir directorio con inodo 2)
+        if (directorio[i].dir_inodo != NULL_INODO && directorio[i].dir_inodo != 2) {
             int inodo_index = directorio[i].dir_inodo;
-            unsigned int size_fichero = inodos->blq_inodos[inodo_index].size_fichero;
-            printf("%-22s %14u\n", directorio[i].dir_nfich, size_fichero);
+            EXT_SIMPLE_INODE *inodo = &inodos->blq_inodos[inodo_index];
+
+            // Nombre del archivo
+            char *nombre_fichero = directorio[i].dir_nfich;
+
+            // Tamaño del archivo
+            unsigned int size_fichero = inodo->size_fichero;
+
+            // Bloques ocupados por el archivo
+            printf("%-22s %14u    %5d    ", nombre_fichero, size_fichero, inodo_index);
+
+            // Mostrar los bloques ocupados por el archivo
+            for (int j = 0; j < MAX_NUMS_BLOQUE_INODO; j++) {
+                if (inodo->i_nbloque[j] == NULL_BLOQUE) break;
+                printf("%d ", inodo->i_nbloque[j]);
+            }
+            printf("\n");
         }
     }
 }
@@ -233,7 +250,7 @@ int Renombrar(EXT_ENTRADA_DIR *directorio, EXT_BLQ_INODOS *inodos, char *nombrea
     return 0;
 }
 
-int Imprimir(EXT_ENTRADA_DIR *directorio, EXT_BLQ_INODOS *inodos, EXT_DATOS *memdatos, char *nombre) {
+int Imprimir(EXT_ENTRADA_DIR *directorio, EXT_BLQ_INODOS *inodos, EXT_DATOS *memdatos, char *nombre) { 
     // Buscar el archivo en el directorio
     int indice = BuscaFich(directorio, inodos, nombre);
     if (indice == -1) {
@@ -241,27 +258,36 @@ int Imprimir(EXT_ENTRADA_DIR *directorio, EXT_BLQ_INODOS *inodos, EXT_DATOS *mem
         return -1;
     }
 
-    printf("Archivo encontrado: %s (índice: %d)\n", nombre, indice);
-
     // Obtener el índice del inodo
     int inodo_index = directorio[indice].dir_inodo;
     EXT_SIMPLE_INODE *inodo = &inodos->blq_inodos[inodo_index];
 
-    printf("Inodo asociado: %d\n", inodo_index);
-    printf("Bloques del inodo: ");
-    for (int i = 0; i < MAX_NUMS_BLOQUE_INODO; i++) {
-        if (inodo->i_nbloque[i] == NULL_BLOQUE) break;
-        printf("%d ", inodo->i_nbloque[i]);
-    }
-    printf("\n");
+    // Crear un buffer temporal para almacenar el contenido concatenado
+    char contenido[SIZE_BLOQUE * MAX_NUMS_BLOQUE_INODO + 1]; // +1 para el carácter nulo
+    int offset = 0;
 
-    // Imprimir los datos asociados a los bloques del inodo
     for (int i = 0; i < MAX_NUMS_BLOQUE_INODO; i++) {
         if (inodo->i_nbloque[i] == NULL_BLOQUE) break;
-        printf("Contenido del bloque %d:\n", i);
-        printf("%.*s", SIZE_BLOQUE, (char *)&memdatos[inodo->i_nbloque[i]]);
+
+        // Obtener el contenido del bloque actual
+        char *bloque_actual = (char *)&memdatos[inodo->i_nbloque[i]];
+        int tamano_bloque = strlen(bloque_actual);
+
+        // Concatenar al buffer temporal
+        if (offset + tamano_bloque < sizeof(contenido)) {
+            strncpy(contenido + offset, bloque_actual, tamano_bloque);
+            offset += tamano_bloque;
+        } else {
+            printf("ERROR: El archivo es demasiado grande para ser concatenado.\n");
+            return -1;
+        }
     }
-    printf("\n");
+
+    // Asegurar que el buffer esté terminado en nulo
+    contenido[offset] = '\0';
+
+    // Imprimir el contenido completo
+    printf("Contenido del archivo '%s':\n%s\n", nombre, contenido);
 
     return 0;
 }
