@@ -22,12 +22,13 @@ void GrabarDatos(EXT_DATOS *memdatos, FILE *fich);
 
 int main()
 {
-      char *comando = (char *)malloc(LONGITUD_COMANDO * sizeof(char));
+	// Se inicializan las variables para el uso de comandos
+    char *comando = (char *)malloc(LONGITUD_COMANDO * sizeof(char));
     char *orden = (char *)malloc(LONGITUD_COMANDO * sizeof(char));
     char *argumento1 = (char *)malloc(LONGITUD_COMANDO * sizeof(char));
     char *argumento2 = (char *)malloc(LONGITUD_COMANDO * sizeof(char));
 
-
+	// Se comprueba que se hayan inicializado correctamente
     if (!comando || !orden || !argumento1 || !argumento2) {
         fprintf(stderr, "Error al asignar memoria\n");
         return 1;
@@ -109,15 +110,6 @@ for (;;) {
     continue;
 }
 
-if (strcmp(orden, "imprimir") == 0) {
-    if (Imprimir(directorio, &ext_blq_inodos, memdatos, argumento1) == 0) {
-        printf("Funcion imprimir ejecutada correctamente\n");
-    } else {
-        printf("Error al imprimir el archivo: %s\n", argumento1);
-    }
-    continue;
-}
-
     if (strcmp(orden, "salir") == 0) {
         GrabarDatos(memdatos, fent); // Grabar todos los datos antes de salir
         fclose(fent);
@@ -135,10 +127,11 @@ int ComprobarComando(char *strcomando, char *orden, char *argumento1, char *argu
     sprintf(argumento2,"%s","");
     sprintf(orden,"%s","");
     sscanf(strcomando,"%s %s %s",orden, argumento1, argumento2);
+	// Se pasan a minuscula
     for(i = 0; orden[i]; i++){
         orden[i] = tolower(orden[i]);
     }
-
+	// Comprueba las ordenes
     if ((strcmp(orden,"dir")!=0) && (strcmp(orden,"info")!=0) && (strcmp(orden,"rename")!=0) &&
         (strcmp(orden,"copy")!=0) && (strcmp(orden,"remove")!=0) &&
         (strcmp(orden,"imprimir")!=0) && (strcmp(orden,"salir")!=0) &&
